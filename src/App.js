@@ -3,6 +3,8 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import iconUrl from './assets/marker-icon.png';
 import L from 'leaflet';
+import './styles/styles.css';
+import ListComponent from './components/ListComponent';
 
 const App = () => {
   const [points, setPoints] = useState([]);
@@ -14,7 +16,7 @@ const App = () => {
   }, []);
 
   const fetchPoints = () => {
-    fetch('http://localhost:8080/points/get-all-points')
+    fetch(`${process.env.REACT_APP_BASE_URL}/points/get-all-points`)
       .then(response => response.json())
       .then(data => {
         const sortedPoints = data.sort((a, b) => b.id - a.id);
@@ -35,7 +37,7 @@ const App = () => {
       datetime: datetime
     };
 
-    fetch('http://localhost:8080/points/save-point', {
+    fetch(`${process.env.REACT_APP_BASE_URL}/points/save-point`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -50,7 +52,7 @@ const App = () => {
   };
 
   const deletePoint = (id) => {
-    fetch(`http://localhost:8080/points/delete/${id}`, {
+    fetch(`${process.env.REACT_APP_BASE_URL}/points/delete/${id}`, {
       method: 'DELETE'
     })
     .then(() => {
@@ -92,9 +94,9 @@ const App = () => {
   });
 
   return (
-    <div style={{ display: 'flex', height: '100vh' }}>
-      <div style={{ flex: '1', paddingLeft: '10px' }}>
-        <MapContainer center={[37.05612, 29.10999]} zoom={13} style={{ height: '50vh', width: '100%', marginBottom: '20px' }} ref={mapRef}>
+    <div className="container">
+      <div className="map-container">
+        <MapContainer center={[37.05612, 29.10999]} zoom={13} className="map" ref={mapRef}>
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
           {points.map(point => (
             <Marker 
@@ -112,22 +114,13 @@ const App = () => {
           ))}
           {selectedPoint && <Marker position={[selectedPoint.lat, selectedPoint.lng]} />}
         </MapContainer>
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
-          <button style={{ backgroundColor: '#28a745', color: '#fff', border: 'none', borderRadius: '5px', padding: '10px 20px', marginRight: '10px', cursor: 'pointer' }} onClick={savePoint}>Noktayı Kaydet</button>
-          <button style={{ backgroundColor: '#007bff', color: '#fff', border: 'none', borderRadius: '5px', padding: '10px 20px', cursor: 'pointer' }} onClick={downloadPointsAsJson}>Konumları İndir</button>
+        <div className="map-buttons">
+          <button onClick={savePoint}>Noktayı Kaydet</button>
+          <button onClick={downloadPointsAsJson}>Konumları İndir</button>
         </div>
       </div>
-      <div style={{ flex: '1', paddingRight: '10px', overflowY: 'auto', maxHeight: '100vh' }}>
-        <h2 style={{ textAlign: 'center', marginBottom: '20px', color: '#333' }}>Konumlar</h2>
-        {points.map(point => (
-          <div key={point.id} style={{ marginBottom: '10px', padding: '10px', border: '1px solid #ccc', borderRadius: '5px', backgroundColor: '#fff', cursor: 'pointer' }} onClick={() => handlePointClick(point)}>
-            <div>ID: {point.id}</div>
-            <div>Lat: {point.lat}</div>
-            <div>Lng: {point.lng}</div>
-            <div>Date: {point.datetime}</div>
-            <button style={{ marginTop: '5px', backgroundColor: '#ff3333', color: '#fff', border: 'none', borderRadius: '5px', padding: '5px 10px', cursor: 'pointer' }} onClick={() => deletePoint(point.id)}>Sil</button>
-          </div>
-        ))}
+      <div className="list-container">
+        <ListComponent points={points} handlePointClick={handlePointClick} deletePoint={deletePoint} />
       </div>
     </div>
   );
