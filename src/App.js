@@ -4,6 +4,7 @@ import 'leaflet/dist/leaflet.css';
 
 const App = () => {
   const [points, setPoints] = useState([]);
+  const [selectedPoint, setSelectedPoint] = useState(null);
   const mapRef = useRef(null);
 
   useEffect(() => {
@@ -13,7 +14,11 @@ const App = () => {
   const fetchPoints = () => {
     fetch('http://localhost:8080/points/get-all-points')
       .then(response => response.json())
-      .then(data => setPoints(data))
+      .then(data => {
+        // ID numarasına göre büyükten küçüğe sırala
+        const sortedPoints = data.sort((a, b) => b.id - a.id);
+        setPoints(sortedPoints);
+      })
       .catch(error => console.error('Error fetching points:', error));
   };
 
@@ -38,7 +43,7 @@ const App = () => {
     })
     .then(response => response.json())
     .then(data => {
-      setPoints([...points, data]);
+      setPoints([data, ...points]); // Yeni noktayı en başa ekle
     })
     .catch(error => console.error('Error saving point:', error));
   };
@@ -66,13 +71,18 @@ const App = () => {
     URL.revokeObjectURL(url);
   };
 
+  const handlePointClick = (point) => {
+    setSelectedPoint(point);
+    mapRef.current.panTo([point.lat, point.lng]);
+  };
+
   return (
-    <div>
-      <div style={{ height: '400px', width: '50%', float: 'left' }}>
-        <MapContainer center={[37.05612, 29.10999]} zoom={13} style={{ height: '100%', width: '100%' }} ref={mapRef}>
+    <div style={{ display: 'flex', height: '100vh' }}>
+      <div style={{ flex: '1', paddingLeft: '10px' }}>
+        <MapContainer center={[37.05612, 29.10999]} zoom={13} style={{ height: '50vh', width: '100%', marginBottom: '20px' }} ref={mapRef}>
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
           {points.map(point => (
-            <Marker key={point.id} position={[point.lat, point.lng]}>
+            <Marker key={point.id} position={[point.lat, point.lng]} eventHandlers={{ click: () => handlePointClick(point) }}>
               <Popup>
                 ID: {point.id}, Lat: {point.lat}, Lng: {point.lng}, Date: {point.datetime}
                 <br />
@@ -80,18 +90,25 @@ const App = () => {
               </Popup>
             </Marker>
           ))}
+          {selectedPoint && <Marker position={[selectedPoint.lat, selectedPoint.lng]} />}
         </MapContainer>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
+          <button style={{ backgroundColor: '#28a745', color: '#fff', border: 'none', borderRadius: '5px', padding: '10px 20px', marginRight: '10px', cursor: 'pointer' }} onClick={savePoint}>Noktayı Kaydet</button>
+          <button style={{ backgroundColor: '#007bff', color: '#fff', border: 'none', borderRadius: '5px', padding: '10px 20px', cursor: 'pointer' }} onClick={downloadPointsAsJson}>Konumları İndir</button>
+        </div>
       </div>
-      <div style={{ height: '400px', width: '50%', float: 'right', overflowY: 'auto' }}>
+      <div style={{ flex: '1', paddingRight: '10px', overflowY: 'auto', maxHeight: '100vh' }}>
+        <h2 style={{ textAlign: 'center', marginBottom: '20px', color: '#333' }}>Konumlar</h2>
         {points.map(point => (
-          <div key={point.id}>
-            ID: {point.id}, Lat: {point.lat}, Lng: {point.lng}, Date: {point.datetime}
-            <button onClick={() => deletePoint(point.id)}>Sil</button>
+          <div key={point.id} style={{ marginBottom: '10px', padding: '10px', border: '1px solid #ccc', borderRadius: '5px', backgroundColor: '#fff', cursor: 'pointer' }} onClick={() => handlePointClick(point)}>
+            <div>ID: {point.id}</div>
+            <div>Lat: {point.lat}</div>
+            <div>Lng: {point.lng}</div>
+            <div>Date: {point.datetime}</div>
+            <button style={{ marginTop: '5px', backgroundColor: '#ff3333', color: '#fff', border: 'none', borderRadius: '5px', padding: '5px 10px', cursor: 'pointer' }} onClick={() => deletePoint(point.id)}>Sil</button>
           </div>
         ))}
       </div>
-      <button onClick={savePoint}>Noktayı Kaydet</button>
-      <button onClick={downloadPointsAsJson}>Konumları İndir</button>
     </div>
   );
 };
