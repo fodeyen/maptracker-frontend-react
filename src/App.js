@@ -96,7 +96,7 @@ const App = () => {
   return (
     <div className="container">
       <div className="map-container">
-        <MapContainer center={[37.05612, 29.10999]} zoom={13} className="map" ref={mapRef}>
+        <MapContainer center={[40.862091, 29.422682]} zoom={13} className="map" ref={mapRef}>
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
           {points.map(point => (
             <Marker 
