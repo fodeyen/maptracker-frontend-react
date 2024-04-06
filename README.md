@@ -1,5 +1,5 @@
-Proje Adı
-Bu proje, [Proje Adı] adlı bir React uygulamasıdır.
+Map Tracker
+Bu proje, Map Tracker adlı bir React uygulamasıdır.
 
 Kurulum
 Node.js'in v16.20.0 veya daha yeni bir sürümünü yükleyin.
