@@ -1,6 +1,8 @@
 Map Tracker
 
 Bu proje, Map Tracker adlı bir React uygulamasıdır.
+![map-foto](https://github.com/fodeyen/maptracker-frontend-react/assets/37729399/3f3b4fb7-d572-41ef-993c-a1c125db9039)
+
 
 Kurulum
 Node.js'in v16.20.0 veya daha yeni bir sürümünü yükleyin.
