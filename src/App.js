@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
+import iconUrl from './assets/marker-icon.png';
+import L from 'leaflet';
 
 const App = () => {
   const [points, setPoints] = useState([]);
@@ -15,7 +17,6 @@ const App = () => {
     fetch('http://localhost:8080/points/get-all-points')
       .then(response => response.json())
       .then(data => {
-        // ID numarasına göre büyükten küçüğe sırala
         const sortedPoints = data.sort((a, b) => b.id - a.id);
         setPoints(sortedPoints);
       })
@@ -43,7 +44,7 @@ const App = () => {
     })
     .then(response => response.json())
     .then(data => {
-      setPoints([data, ...points]); // Yeni noktayı en başa ekle
+      setPoints([data, ...points]);
     })
     .catch(error => console.error('Error saving point:', error));
   };
@@ -54,7 +55,10 @@ const App = () => {
     })
     .then(() => {
       setPoints(points.filter(point => point.id !== id));
+      setSelectedPoint(null); // Seçilen noktayı temizle
     })
+    .then(() => mapRef.current.leafletElement.closePopup()) // Popup'ı kapat
+    .then(() => mapRef.current.leafletElement.invalidateSize()) // Haritayı yenile
     .catch(error => console.error('Error deleting point:', error));
   };
 
@@ -76,13 +80,29 @@ const App = () => {
     mapRef.current.panTo([point.lat, point.lng]);
   };
 
+  const icon = L.icon({
+    iconUrl: iconUrl,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    tooltipAnchor: [16, -28],
+    shadowUrl: null,
+    shadowSize: null,
+    shadowAnchor: null
+  });
+
   return (
     <div style={{ display: 'flex', height: '100vh' }}>
       <div style={{ flex: '1', paddingLeft: '10px' }}>
         <MapContainer center={[37.05612, 29.10999]} zoom={13} style={{ height: '50vh', width: '100%', marginBottom: '20px' }} ref={mapRef}>
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
           {points.map(point => (
-            <Marker key={point.id} position={[point.lat, point.lng]} eventHandlers={{ click: () => handlePointClick(point) }}>
+            <Marker 
+              icon={icon}
+              key={point.id} 
+              position={[point.lat, point.lng]} 
+              eventHandlers={{ click: () => handlePointClick(point) }}
+            >
               <Popup>
                 ID: {point.id}, Lat: {point.lat}, Lng: {point.lng}, Date: {point.datetime}
                 <br />
