@@ -53,6 +53,19 @@ const App = () => {
     .catch(error => console.error('Error deleting point:', error));
   };
 
+  const downloadPointsAsJson = () => {
+    const json = JSON.stringify(points, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'points.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div>
       <div style={{ height: '400px', width: '50%', float: 'left' }}>
@@ -78,6 +91,7 @@ const App = () => {
         ))}
       </div>
       <button onClick={savePoint}>Noktayı Kaydet</button>
+      <button onClick={downloadPointsAsJson}>Konumları İndir</button>
     </div>
   );
 };
